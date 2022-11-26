@@ -5,15 +5,41 @@ identificador = sys.argv[1]
 porto = sys.argv[2] 
 
 vizinhos = []
-tabela_roteamento = [(identificador, 0, identificador)]
+tabela_roteamento = {identificador : (identificador, 0, identificador)}
 
 print("Roteador " + identificador + " iniciado...")
 
 sck = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sck.bind((identificador, int(porto)))
+sck.bind(('localhost', int(porto)))
+
+def distance_vector(tabela_anuncio, vizinho):
+    for anuncio in tabela_anuncio:
+        destino = anuncio[0]
+        custo = anuncio[1]
+        if destino not in tabela_roteamento.keys(): # dar um jeito de chavear a tabela
+            tabela_roteamento[destino] = (destino, int(custo) + 1, vizinho)
+        else:
+            if int(custo) + 1 < tabela_roteamento[destino][1]:
+                tabela_roteamento[destino] = (destino, int(custo) + 1, vizinho)
+            else:
+                if tabela_roteamento[destino][2] == vizinho:
+                    tabela_roteamento[destino] = (destino, int(custo) + 1, tabela_roteamento[destino][2])
+
+def monta_anuncio(tb_roteamento, nome_roteador):
+    tabela_anuncio = []
+    for rota in tb_roteamento.values():
+        tabela_anuncio.append((rota[0], rota[1]))
+    print(tabela_anuncio)
+
+    mensagem = '11111' + ':' + nome_roteador + ':' + str(len(tabela_anuncio))
+    for (dest, cust) in tabela_anuncio:
+        mensagem = mensagem + ':' + dest + ':' + str(cust)
+    
+    # print(mensagem)
+    return mensagem
 
 while True:
-    msg = (sck.recv(40).decode("utf-8")).split(':')
+    msg = (sck.recv(50).decode("utf-8")).split(':')
 
     if msg[0] == 'C': 
         print("Adicionando roteador aos vizinhos...")
@@ -21,6 +47,7 @@ while True:
         ip = msg[1]
         port = msg[2]
         vizinhos.append((nome, ip, port))
+        tabela_roteamento[nome] = (nome, 1, nome)
         print(vizinhos)
 
     elif msg[0] == 'D':
@@ -34,7 +61,9 @@ while True:
         # atualizar rotas que tem proximo passo como esse vizinho para distancia 16
 
     elif msg[0] == 'I':
-        pass
+        anuncio = monta_anuncio(tabela_roteamento, identificador)
+        for vizinho in vizinhos:
+            sck.sendto(anuncio.encode("latin-1"),(vizinho[1], int(vizinho[2])))
 
     elif msg[0] == 'F':
         print("Finalizando execução do roteador " + identificador)
@@ -43,7 +72,7 @@ while True:
     elif msg[0] == 'T':
         print("Tabela de Roteamento")
         print(identificador)
-        for rota in tabela_roteamento:
+        for rota in tabela_roteamento.values():
             print(rota)
         print('\n')
 
@@ -58,3 +87,16 @@ while True:
     else:
         print(msg)
 
+        tabela_anuncio = []
+        for i in range(3, len(msg), 2):
+            tabela_anuncio.append((msg[i], msg[i+1]))
+
+        print("Tabela anuncio vindo de " + msg[1])
+        print(tabela_anuncio)
+        print("\n")
+
+        distance_vector(tabela_anuncio, msg[1])
+
+        print("Tabela de roteamento de " + identificador)
+        print(tabela_roteamento)
+        

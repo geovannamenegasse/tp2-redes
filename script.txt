@@ -1,0 +1,19 @@
+localhost 2222 C localhost 1111 r01
+localhost 2222 C localhost 3333 r03
+localhost 1111 C localhost 5555 r05
+localhost 5555 C localhost 6666 r06
+localhost 6666 C localhost 4444 r04
+localhost 3333 C localhost 4444 r04
+localhost 2222 I
+localhost 2222 T
+localhost 1111 T
+localhost 5555 T
+localhost 6666 I
+localhost 5555 I
+localhost 1111 I
+localhost 4444 I
+localhost 3333 I
+localhost 2222 I
+localhost 3333 T
+localhost 2222 T
+localhost 5555 T
