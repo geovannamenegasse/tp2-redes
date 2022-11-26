@@ -17,7 +17,7 @@ def distance_vector(tabela_anuncio, vizinho):
     for anuncio in tabela_anuncio:
         destino = anuncio[0]
         custo = anuncio[1]
-        if destino not in tabela_roteamento.keys(): # dar um jeito de chavear a tabela
+        if destino not in tabela_roteamento.keys(): 
             tabela_roteamento[destino] = (destino, int(custo) + 1, vizinho)
         else:
             if int(custo) + 1 < tabela_roteamento[destino][1]:
@@ -43,7 +43,6 @@ def monta_anuncio(tb_roteamento, nome_roteador):
 def manda_anuncio():
     sleep(1)
     anuncio = monta_anuncio(tabela_roteamento, identificador)
-
     for vizinho in vizinhos:
         if vizinho[0] != identificador:
             # print("Enviando anuncio ao roteador " + vizinho[0])
@@ -63,14 +62,27 @@ def adiciona_vizinho(msg):
     # print(vizinhos)
 
 def remove_vizinho(msg):
+    global vizinhos
     aux = []
+    nome_vizinho = ''
     # print("Removendo roteador dos vizinhos...")
     for vizinho in vizinhos:
         if vizinho[1] != msg[1] or vizinho[2] != msg[2]:
             aux.append(vizinho)
+        else:
+            nome_vizinho = vizinho[0]
     vizinhos = aux            
-    # print(vizinhos)
+    print(vizinhos)
+    print("\n")
     # atualizar rotas que tem proximo passo como esse vizinho para distancia 16
+    print(nome_vizinho)
+    if nome_vizinho in tabela_roteamento.keys():
+        tabela_roteamento[nome_vizinho] = (tabela_roteamento[nome_vizinho][0], 16, tabela_roteamento[nome_vizinho][2])
+        print(tabela_roteamento)
+        new_msg = 'D:' + 'localhost' + ':' + str(porto)
+        sck.sendto(new_msg.encode("latin-1"),(msg[1], int(msg[2])))
+    print(vizinhos)
+    print("\n")
 
 
 def encerra_execucao():
@@ -92,7 +104,10 @@ def recebe_anuncio(msg, recvd):
         if vizinho[0] == msg[1]:
             achei = True
     if achei == False and msg[1] != identificador:
-        vizinhos.append((msg[1],str(recvd[1][0]),str(recvd[1][1])))
+        if recvd[1][0] == '127.0.0.1':
+            vizinhos.append((msg[1],'localhost',str(recvd[1][1])))
+        else:
+            vizinhos.append((msg[1],str(recvd[1][0]),str(recvd[1][1])))
 
     tabela_anuncio = []
     for i in range(3, len(msg), 2):
