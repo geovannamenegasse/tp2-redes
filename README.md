@@ -11,3 +11,8 @@ Dúvidas:
 3. o inteiro curto (short int) com o número do comando que identifica a mensagem deverá ter o valor 11111
 4. O anuncio vai ser a tabela de roteamento?
 5. custo = distancia?
+
+Falta:
+1. Threads (mutex)
+2. Corrigir strings de localhost
+3. Algumas validações
