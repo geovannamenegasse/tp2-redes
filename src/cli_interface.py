@@ -20,6 +20,7 @@ if __name__ == '__main__':
         entrada = input().split(' ')
 
         if entrada[2] == COMMAND_C:
+            # manda o ip e porto de um roteador para ser adicionado a um outro roteador informado
             end_IP_1 = entrada[0]
             porto_1  = entrada[1]
             end_IP_2 = entrada[3]
@@ -30,6 +31,7 @@ if __name__ == '__main__':
             sckt.sendto(msg.encode("latin-1"),(end_IP_1, int(porto_1)))
 
         if entrada[2] == COMMAND_D:
+            # informa o ip e a porto do roteador que deseja-se desconectar de um outro roteador informado
             end_IP_1 = entrada[0]
             porto_1  = entrada[1]
             end_IP_2 = entrada[3]
@@ -39,6 +41,7 @@ if __name__ == '__main__':
             sckt.sendto(msg.encode("latin-1"),(end_IP_1, int(porto_1)))
 
         if entrada[2] == COMMAND_I:
+            # inicia o roteamento a partir do roteador com ip e porto informados
             end_IP_1 = entrada[0]
             porto_1  = entrada[1]
             
@@ -46,6 +49,7 @@ if __name__ == '__main__':
             sckt.sendto(msg.encode("latin-1"),(end_IP_1, int(porto_1)))
 
         if entrada[2] == COMMAND_F:
+            # encerra a execucao do roteador de ip e porto informados
             end_IP_1 = entrada[0]
             porto_1  = entrada[1]
 
@@ -53,6 +57,7 @@ if __name__ == '__main__':
             sckt.sendto(msg.encode("latin-1"),(end_IP_1, int(porto_1)))
             
         if entrada[2] == COMMAND_T:
+            # imprime a tabela de roteamento do roteador de ip e porto informados
             end_IP_1 = entrada[0]
             porto_1  = entrada[1]
 
@@ -60,6 +65,7 @@ if __name__ == '__main__':
             sckt.sendto(msg.encode("latin-1"),(end_IP_1, int(porto_1)))
             
         if entrada[2] == COMMAND_E:
+            # envia a mensagem ao roteador de nome informado a partir do roteador de ip e porto informado
             end_IP_1 = entrada[0]
             porto_1  = entrada[1]
             mensagem = entrada[3]
