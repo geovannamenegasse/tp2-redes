@@ -17,3 +17,7 @@ Falta:
 2. Corrigir strings de localhost
 3. Algumas validações
 4. Por short int na msg
+
+
+Relatório:
+https://docs.google.com/document/d/1u4hqjuvOlH_eSNmpN5gu1MQ2tTDb-EBfz5Jbw6VziOQ/edit?usp=sharing
