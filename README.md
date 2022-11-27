@@ -16,3 +16,4 @@ Falta:
 1. Threads (mutex)
 2. Corrigir strings de localhost
 3. Algumas validações
+4. Por short int na msg
