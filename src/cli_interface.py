@@ -1,5 +1,6 @@
 import sys
 import socket
+from time import sleep
 
 sck = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -59,4 +60,4 @@ if __name__ == '__main__':
             sck.sendto(msg.encode("latin-1"),(end_IP_1, int(porto_1)))
             
         if entrada[2] == 'S':
-            pass
+            sleep(float(entrada[3]))
