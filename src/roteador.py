@@ -1,7 +1,7 @@
 import sys
 import socket
 
-from threading import Thread, Timer
+from threading import Thread, Timer, Semaphore
 from time import sleep
 
 MY_IP = 'localhost'
@@ -26,11 +26,14 @@ tabela_roteamento = {IDENTIFICADOR : (IDENTIFICADOR, 0, IDENTIFICADOR)}
 sckt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sckt.bind((MY_IP, int(PORTO)))
 
+sem = Semaphore(value=1)
 
 def adiciona_vizinho(msg):
     nome, ip, port = msg[3], msg[1], msg[2]
+    sem.acquire()
     tabela_vizinhos.append((nome, ip, port))
     tabela_roteamento[nome] = (nome, 1, nome)
+    sem.release()
 
 def remove_vizinho(msg):
     global tabela_vizinhos
@@ -38,6 +41,7 @@ def remove_vizinho(msg):
     aux = []
     nome_vizinho = ''
 
+    sem.acquire()  
     for vizinho in tabela_vizinhos:
         if vizinho[1] != msg[1] or vizinho[2] != msg[2]:
             aux.append(vizinho)
@@ -45,74 +49,89 @@ def remove_vizinho(msg):
             nome_vizinho = vizinho[0]
 
     tabela_vizinhos = aux            
+    sem.release()
 
+    sem.acquire()    
     if nome_vizinho in tabela_roteamento.keys():
         tabela_roteamento[nome_vizinho] = (tabela_roteamento[nome_vizinho][0], INFINITY, tabela_roteamento[nome_vizinho][2])
         new_msg = COMMAND_D + SEP + MY_IP + SEP + str(PORTO)
         sckt.sendto(new_msg.encode("latin-1"),(msg[1], int(msg[2])))
-    
+    sem.release()
+
+    sem.acquire()
     for rota in tabela_roteamento.values():
         if nome_vizinho == rota[2]:
             tabela_roteamento[rota[0]] = (rota[0], INFINITY, tabela_roteamento[rota[0]][2])
+    sem.release()
 
 def manda_anuncio():
     sleep(1)
     anuncio = monta_anuncio(tabela_roteamento, IDENTIFICADOR)
+    sem.acquire()
     for vizinho in tabela_vizinhos:
         if vizinho[0] != IDENTIFICADOR:
             sckt.sendto(anuncio.encode("latin-1"),(vizinho[1], int(vizinho[2])))
+    sem.release()
 
 def monta_anuncio(tb_roteamento, nome_roteador):
     tabela_anuncio = []
+    sem.acquire()
     for rota in tb_roteamento.values():
         tabela_anuncio.append((rota[0], rota[1]))
+    sem.release()
 
     mensagem = '11111' + SEP + nome_roteador + SEP + str(len(tabela_anuncio))
     for (dest, cust) in tabela_anuncio:
         mensagem = mensagem + SEP + dest + SEP + str(cust)
-    
+
     return mensagem
 
 def encerra_execucao():
     exit(1)
 
 def imprime_tabela():
+    sem.acquire()
     print(IDENTIFICADOR)
     for rota in tabela_roteamento.values():
         print(rota[0], end=" ")
         print(rota[1], end=" ")
         print(rota[2])
     print('\n')
+    sem.release()
 
 def envia_mensagem(msg, nome_origem):
     mensagem = msg[1]
     nome_destino = msg[2]
-    
+
     if len(msg) < 4:
         nome_origem = IDENTIFICADOR
     else:
         nome_origem = msg[3]
-
+    
+    sem.acquire()
     if nome_destino not in tabela_roteamento.keys():
         print("X " +  mensagem + " de " + nome_origem + " para " + nome_destino)
         return
 
     nome_next = tabela_roteamento[nome_destino][2] 
-
+    sem.release()
+    
     if nome_destino == IDENTIFICADOR:
         print("R " +  mensagem + " de " + nome_origem + " para " + nome_destino)
         return
     else:
         print("E " +  mensagem + " de " + nome_origem + " para " + nome_destino + " através de " + nome_next)
-        
+
     ip_next = ''
     port_next = None
 
+    sem.acquire()
     for vizinho in tabela_vizinhos:
         if vizinho[0] == nome_next:
             ip_next = vizinho[1]
             port_next = vizinho[2]
             break
+    sem.release()
 
     if nome_origem != '':
         nome_origem = SEP + nome_origem
@@ -122,6 +141,8 @@ def envia_mensagem(msg, nome_origem):
 
 def recebe_anuncio(msg, emissor):
     achei = False
+
+    sem.acquire()
     for vizinho in tabela_vizinhos:
         if vizinho[0] == msg[1]:
             achei = True
@@ -130,6 +151,7 @@ def recebe_anuncio(msg, emissor):
             tabela_vizinhos.append((msg[1],'localhost',str(emissor[1][1])))
         else:
             tabela_vizinhos.append((msg[1],str(emissor[1][0]),str(emissor[1][1])))
+    sem.release()
 
     tabela_anuncio = []
     for i in range(3, len(msg), 2):
@@ -141,6 +163,7 @@ def distance_vector(tabela_anuncio, vizinho):
     for anuncio in tabela_anuncio:
         destino = anuncio[0]
         custo = anuncio[1]
+        sem.acquire()
         if destino not in tabela_roteamento.keys(): 
             tabela_roteamento[destino] = (destino, int(custo) + 1, vizinho)
         else:
@@ -149,10 +172,10 @@ def distance_vector(tabela_anuncio, vizinho):
             else:
                 if tabela_roteamento[destino][2] == vizinho:
                     tabela_roteamento[destino] = (destino, int(custo) + 1, tabela_roteamento[destino][2])
-
+        sem.release()
 
 while True:
-    t = Timer(1.0, manda_anuncio)
+    t = Timer(interval=1.0, function=manda_anuncio)
     t.start()
 
     emissor = sckt.recvfrom(50)
@@ -178,5 +201,5 @@ while True:
 
     else:
         recebe_anuncio(msg, emissor)
-    
+
     t.cancel()
