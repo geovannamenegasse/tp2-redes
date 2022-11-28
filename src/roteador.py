@@ -6,7 +6,7 @@ from time import sleep
 
 MY_IP = 'localhost' # mudar de acordo com o IP da maquina
 INFINITY = 16
-SEP = ':'
+SEP = '+'
 
 TAMANHO_MSG = 50
 
@@ -25,7 +25,6 @@ tabela_roteamento = {IDENTIFICADOR : (IDENTIFICADOR, 0, IDENTIFICADOR)}
 
 sckt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sckt.bind((MY_IP, int(PORTO)))
-
 
 sem = Semaphore(value=1) # semaforo para sincronizacao da tabela de vizinhos e de roteamento
 

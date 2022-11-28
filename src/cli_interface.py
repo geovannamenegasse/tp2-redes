@@ -2,7 +2,7 @@ import socket
 
 from time import sleep
 
-SEP = ':'
+SEP = '+'
 
 COMMAND_C = 'C'
 COMMAND_D = 'D'
