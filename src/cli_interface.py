@@ -18,6 +18,7 @@ if __name__ == '__main__':
 
     while True:
         entrada = input().split(' ')
+        entrada = list(filter(lambda a: a != '', entrada))
 
         if entrada[2] == COMMAND_C:
             # manda o ip e porto de um roteador para ser adicionado a um outro roteador informado
